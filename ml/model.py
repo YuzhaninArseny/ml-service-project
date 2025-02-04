@@ -8,9 +8,11 @@ class Model:
         self._model_id = model_id
         self._model_name = model_name
 
+    @property
     def get_model_id(self) -> int:
         return self._model_id
 
+    @property
     def get_model_name(self) -> str:
         return self._model_name
 
