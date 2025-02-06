@@ -1,0 +1,38 @@
+version: "1.0"
+
+services:
+  app:
+    build: ./app
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app
+    depends_on:
+      - rabbitmq
+      - database
+
+  web-proxy:
+    build: ./web-proxy
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - app
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: on-failure
+
+  database:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  rabbitmq_data:
+  postgres_data:
