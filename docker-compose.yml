@@ -4,7 +4,7 @@ services:
   app:
     build: ./app
     env_file:
-      - .env
+      - .env.template
     volumes:
       - ./app:/app
     depends_on:
@@ -12,7 +12,7 @@ services:
       - database
 
   web-proxy:
-    build: ./web-proxy
+    image: nginx:alpine
     ports:
       - 80:80
       - 443:443
