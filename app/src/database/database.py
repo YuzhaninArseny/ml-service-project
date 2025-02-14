@@ -1,13 +1,14 @@
-import hashlib
+import json
 from contextlib import contextmanager
 from typing import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from models import Base
-from models import User, Transaction, Prediction
 from dotenv import load_dotenv
 import os
+
+from .models import Base, User, Transaction, Prediction
+from shemas.enums import TransactionType
 
 load_dotenv()
 
@@ -22,6 +23,7 @@ class Database:
         self._Session = sessionmaker(
             autocommit=False, autoflush=False, bind=self._engine
         )
+        # Base.metadata.drop_all(self._engine)
         Base.metadata.create_all(self._engine)
 
     @contextmanager
@@ -38,19 +40,17 @@ class Database:
 
 
 class UserManager(Database):
-    def __init__(self, db_url: str):
-        super().__init__(db_url)
-
     @classmethod
-    def register(cls, db_url, username: str, password: str, is_admin: bool = False) -> None:
+    def register(cls, db_url, username: str, password: str, is_admin: bool = False) -> bool:
         user_manager = cls(db_url)
         with user_manager.session_scope() as session:
             if session.query(User).filter_by(username=username).first():
-                print(f"User with username '{username}' already exists.")
-                return
+                return False
 
-            new_user = User(username=username, password=cls._hash_password(password), is_admin=is_admin)
+            new_user = User(username=username, password=password, is_admin=is_admin)
             session.add(new_user)
+
+        return True
 
     @classmethod
     def authorization(
@@ -59,10 +59,18 @@ class UserManager(Database):
         user_manager = cls(db_url)
         with user_manager.session_scope() as session:
             user = session.query(User).filter_by(username=username).first()
-            print(user)
             if user and user.verify_password(user.password, password_for_verification):
                 return True
             return False
+
+    @classmethod
+    def get_all_users(cls, db_url: str):
+        user_manager = cls(db_url)
+        with user_manager.session_scope() as session:
+            users = session.query(User).all()
+            users = json.dumps([user.to_dict() for user in users])
+        return users
+
 
     @classmethod
     def get_balance(
@@ -82,21 +90,36 @@ class UserManager(Database):
             user = session.query(User).filter_by(username=username).first()
             if user:
                 user.balance += amount
+                transactions_type = TransactionType.REPLENISHMENT if amount > 0 else TransactionType.WITHDRAW
+                new_transaction = Transaction(username=username, amount=amount, transaction_type=transactions_type.value)
+                session.add(new_transaction)
 
     @classmethod
-    def get_user_transactions(cls, db_url: str, user_id: int):
+    def add_prediction(cls, db_url: str, username: str, prediction: str) -> None:
+        user_manager = cls(db_url)
+        with user_manager.session_scope() as session:
+            user = session.query(User).filter_by(username=username).first()
+            if user:
+                users_prediction = Prediction(username=username, prediction_result=prediction)
+                session.add(users_prediction)
+
+
+    @classmethod
+    def get_user_transactions(cls, db_url: str, username: str):
         """Получает все транзакции для указанного пользователя."""
         user_manager = cls(db_url)
         with user_manager.session_scope() as session:
-            transactions = session.query(Transaction).filter_by(user_id=user_id).all()
+            transactions = session.query(Transaction).filter_by(username=username).all()
+            transactions = json.dumps([transaction.to_dict() for transaction in transactions])
         return transactions
 
     @classmethod
-    def get_user_predictions(cls, db_url: str, user_id: int):
+    def get_user_predictions(cls, db_url: str, username: str):
         """Получает все транзакции для указанного пользователя."""
         user_manager = cls(db_url)
         with user_manager.session_scope() as session:
-            predictions = session.query(Prediction).filter_by(user_id=user_id).all()
+            predictions = session.query(Prediction).filter_by(username=username).all()
+            predictions = json.dumps([prediction.to_dict() for prediction in predictions])
         return predictions
 
 if __name__ == "__main__":
@@ -117,8 +140,10 @@ if __name__ == "__main__":
     new_balance = UserManager.get_balance(db_url, "demo_user")
     print("New Balance:", new_balance)
 
-    transactions = UserManager.get_user_transactions(db_url, 1)
+    transactions = UserManager.get_user_transactions(db_url, "demo_user")
     print("Transactions:", transactions)
 
-    predictions = UserManager.get_user_predictions(db_url, 1)
+    UserManager.add_prediction(db_url, "demo_user", "hahahahahahhahhaahha")
+
+    predictions = UserManager.get_user_predictions(db_url, "demo_user")
     print("Predictions:", predictions)

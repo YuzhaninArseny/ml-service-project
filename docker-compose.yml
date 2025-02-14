@@ -2,9 +2,12 @@ version: "1.0"
 
 services:
   app:
+    container_name: "app"
     build: ./app
     env_file:
       - .env
+    ports:
+      - 8080:8000
     volumes:
       - ./app:/app
     depends_on:
@@ -12,6 +15,7 @@ services:
       - database
 
   web-proxy:
+    container_name: "web-proxy"
     image: nginx:alpine
     ports:
       - 80:80
@@ -20,6 +24,7 @@ services:
       - app
 
   rabbitmq:
+    container_name: "rabbitmq"
     image: rabbitmq:4.1-rc-management
     ports:
       - "15672:15672"
@@ -29,6 +34,7 @@ services:
     restart: on-failure
 
   database:
+    container_name: "postgres"
     image: postgres:13
     environment:
       POSTGRES_DB: ${POSTGRES_DB}

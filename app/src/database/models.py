@@ -45,12 +45,21 @@ class User(Base):
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         return stored_password_hash == hashed_password
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "password": hashlib.sha256(self.password.encode()).hexdigest(),
+            "balance": self.balance,
+            "is_admin": self.is_admin,
+        }
+
 
 class Transaction(Base):
     __tablename__ = "transactions"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    username = Column(String, ForeignKey("users.username"), nullable=False)
     amount = Column(Float, nullable=False)
     transaction_type = Column(
         String, nullable=False
@@ -59,15 +68,31 @@ class Transaction(Base):
 
     user = relationship("User", back_populates="transactions")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "amount": self.amount,
+            "transaction_type": self.transaction_type,
+            "date": self.date.isoformat()
+        }
 
 class Prediction(Base):
     __tablename__ = "predictions"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    username = Column(String, ForeignKey("users.username"), nullable=False)
     prediction_result = Column(
         String, nullable=False
     )  # Буду анекдоты пользователю генерировать, поэтому string
     date = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="predictions")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "prediction_result": self.prediction_result,
+            "date": self.date.isoformat()
+        }
