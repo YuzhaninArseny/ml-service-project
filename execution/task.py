@@ -31,3 +31,11 @@ class ModelTask(Task):
 
     def execute(self, input_data: Dict) -> Dict:
         return self._model.predict(input_data)
+
+class DataBaseTask(Task):
+    def __init__(self, task_id: int, task_name: str, data: Dict):
+        super().__init__(task_id, task_name)
+        self._data = data
+
+    def execute(self, input_data: Dict) -> Dict:
+        return self._data

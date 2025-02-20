@@ -1,15 +1,12 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
 
-class UserCreate(BaseModel):
+class UserData(BaseModel):
     username: str
     password: str
-    is_admin: bool = False
-
-class UserLogin(BaseModel):
-    username: str
-    password_for_verification: str
+    is_admin: Optional[bool] = False
 
 class Transaction(BaseModel):
     username: str

@@ -1,6 +1,6 @@
 import json
 from contextlib import contextmanager
-from typing import Generator
+from typing import Generator, Any
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -46,7 +46,6 @@ class UserManager(Database):
         with user_manager.session_scope() as session:
             if session.query(User).filter_by(username=username).first():
                 return False
-
             new_user = User(username=username, password=password, is_admin=is_admin)
             session.add(new_user)
 
@@ -55,13 +54,13 @@ class UserManager(Database):
     @classmethod
     def authorization(
         cls, db_url: str, username: str, password_for_verification: str
-    ) -> bool:
+    ):
         user_manager = cls(db_url)
         with user_manager.session_scope() as session:
             user = session.query(User).filter_by(username=username).first()
             if user and user.verify_password(user.password, password_for_verification):
-                return True
-            return False
+                return user.id, user.is_admin
+            return None, None
 
     @classmethod
     def get_all_users(cls, db_url: str):
@@ -75,13 +74,13 @@ class UserManager(Database):
     @classmethod
     def get_balance(
             cls, db_url: str, username: str
-    ) -> float:
+    ) -> Any:
         user_manager = cls(db_url)
         with user_manager.session_scope() as session:
             user = session.query(User).filter_by(username=username).first()
             if user:
                 return user.balance
-            return 0.0
+            return None
 
     @classmethod
     def change_balance(cls, db_url: str, username: str, amount: float) -> None:

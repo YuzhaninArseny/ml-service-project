@@ -49,7 +49,6 @@ class User(Base):
         return {
             "id": self.id,
             "username": self.username,
-            "password": hashlib.sha256(self.password.encode()).hexdigest(),
             "balance": self.balance,
             "is_admin": self.is_admin,
         }
