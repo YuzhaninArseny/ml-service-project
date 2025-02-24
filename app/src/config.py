@@ -13,5 +13,4 @@ def get_auth_data():
     return {"secret_key": SECRET_KEY, "algorithm": ALGORITHM}
 
 def get_url():
-    print(f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@postgres:5432/{POSTGRES_DB}")
     return f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@postgres:5432/{POSTGRES_DB}"

@@ -20,3 +20,7 @@ class PredictionResponse(BaseModel):
     id: int
     prediction_result: str
     date: datetime
+
+class AnecdoteRequest(BaseModel):
+    username: str
+    prompt: str

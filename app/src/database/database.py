@@ -114,7 +114,6 @@ class UserManager(Database):
 
     @classmethod
     def get_user_predictions(cls, db_url: str, username: str):
-        """Получает все транзакции для указанного пользователя."""
         user_manager = cls(db_url)
         with user_manager.session_scope() as session:
             predictions = session.query(Prediction).filter_by(username=username).all()

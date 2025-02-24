@@ -10,9 +10,24 @@ services:
       - 8080:8000
     volumes:
       - ./app:/app
+    restart: on-failure
     depends_on:
       - rabbitmq
       - database
+
+  worker:
+#    container_name: ml_service
+    build: ./app
+    env_file:
+      - .env
+    command: [ "python", "./src/ml_service/model.py" ]
+    volumes:
+      - ./app:/app
+    restart: on-failure
+    deploy:
+      replicas: 2
+    depends_on:
+      - rabbitmq
 
   web-proxy:
     container_name: "web-proxy"
@@ -26,11 +41,15 @@ services:
   rabbitmq:
     container_name: "rabbitmq"
     image: rabbitmq:4.1-rc-management
+    environment:
+      - RABBITMQ_DEFAULT_USER = ${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS = ${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
     ports:
       - "15672:15672"
       - "5672:5672"
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_data:/var/lib/ml_service
     restart: on-failure
 
   database:
