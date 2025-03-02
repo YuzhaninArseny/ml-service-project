@@ -27,6 +27,11 @@ def get_all_users():
     response = requests.get(url)
     return response.json()
 
+def get_transaction_history(token: str):
+    url = f"{BASE_URL}/all_transactions"
+    response = requests.get(url, cookies={"access_token": token})
+    return json.loads(response.json())
+
 
 def is_admin(token: str):
     try:
@@ -58,8 +63,8 @@ if st.session_state.show_register and st.session_state.show_login:
                 is_admin_flag = st.checkbox("Is Admin", key="register_is_admin")
                 if st.form_submit_button("Register"):
                     answer = register_user(username, password, is_admin_flag)
-                    if answer.get("msg", False):
-                        st.success(answer["msg"])
+                    if answer.get("message", False):
+                        st.success(answer["message"])
                         st.session_state.show_register = False
                     else:
                         st.error(answer["detail"])
@@ -115,6 +120,13 @@ if (
                 st.success(answer["msg"])
             else:
                 st.error(response.json()["detail"])
+
+    if st.button("Get Transaction History", key="get_transaction_history_button"):
+        transactions = get_transaction_history(st.session_state.token)
+        if transactions:
+            st.dataframe(transactions)
+        else:
+            st.info("No transactions available!")
 
     # Вкладка для получения предсказаний
     if st.button("Get Predictions", key="get_predictions_button"):

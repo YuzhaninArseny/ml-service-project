@@ -23,7 +23,8 @@ def get_token(request: Request):
     return token
 
 
-def authenticate(token: str):
+def authenticate(request: Request):
+    token = get_token(request)
     try:
         payload = jwt.decode(token, key=SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
@@ -37,6 +38,8 @@ def authenticate(token: str):
     user_id = payload["sub"]
     if not user_id:
         raise HTTPException(status_code=401, detail="User not found")
+
+    return token
 
 
 def is_admin(token: str):
@@ -72,12 +75,7 @@ def login(response: Response, user_data: UserData):
 
 
 @app.post("/deposit")
-def deposit(transaction: Transaction, token: str = Depends(get_token)):
-    try:
-        authenticate(token)
-    except HTTPException as e:
-        raise e
-
+def deposit(transaction: Transaction, token: str = Depends(authenticate)):
     if transaction.amount == 0:
         raise HTTPException(
             status_code=400, detail="You cannot conduct zero-sum transactions."
@@ -92,23 +90,13 @@ def deposit(transaction: Transaction, token: str = Depends(get_token)):
 
 
 @app.get("/balance")
-def get_balance(token: str = Depends(get_token)):
-    try:
-        authenticate(token)
-    except HTTPException as e:
-        raise e
-
+def get_balance(token: str = Depends(authenticate)):
     user_balance = UserManager.get_balance(get_url(), get_username_from_token(token))
     return user_balance
 
 
 @app.get("/predictions")
-def get_predictions(token: str = Depends(get_token)):
-    try:
-        authenticate(token)
-    except HTTPException as e:
-        raise e
-
+def get_predictions(token: str = Depends(authenticate)):
     predictions = UserManager.get_user_predictions(
         get_url(), get_username_from_token(token)
     )
@@ -116,25 +104,22 @@ def get_predictions(token: str = Depends(get_token)):
 
 
 @app.get("/all_users")
-def get_all_users(token: str = Depends(get_token)):
-    try:
-        authenticate(token)
-    except HTTPException as e:
-        raise e
-
+def get_all_users(token: str = Depends(authenticate)):
     if not is_admin(token):
         raise HTTPException(status_code=400, detail="User not admin")
 
     return UserManager.get_all_users(get_url())
 
+@app.get("/all_transactions")
+def get_user_transactions(token: str = Depends(authenticate)):
+    username = get_username_from_token(token)
+    transactions = UserManager.get_user_transactions(get_url(), username)
+    return transactions
+
+
 
 @app.post("/anecdote")
-def get_anecdote(prompt_data: AnecdoteRequest, token: str = Depends(get_token)):
-    try:
-        authenticate(token)
-    except HTTPException as e:
-        raise e
-
+def get_anecdote(prompt_data: AnecdoteRequest, token: str = Depends(authenticate)):
     username = get_username_from_token(token)
 
     if (
@@ -168,12 +153,7 @@ def get_anecdote(prompt_data: AnecdoteRequest, token: str = Depends(get_token)):
 
 
 @app.get("/anecdote/{task_id}")
-def get_anecdote_result(task_id: str, token: str = Depends(get_token)):
-    try:
-        authenticate(token)
-    except HTTPException as e:
-        raise e
-
+def get_anecdote_result(task_id: str, token: str = Depends(authenticate)):
     username = get_username_from_token(token)
     predictions = UserManager.get_prediction_by_id(get_url(), task_id, username)
     if predictions is None:
