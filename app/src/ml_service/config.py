@@ -10,12 +10,11 @@ RABBITMQ_DEFAULT_PASS = os.getenv("RABBITMQ_DEFAULT_PASS")
 
 def get_connection_params():
     return pika.ConnectionParameters(
-        host='rabbitmq',
+        host="rabbitmq",
         port=5672,
-        virtual_host='/',
+        virtual_host="/",
         credentials=pika.PlainCredentials(
-            username=RABBITMQ_DEFAULT_USER,
-            password=RABBITMQ_DEFAULT_PASS
+            username=RABBITMQ_DEFAULT_USER, password=RABBITMQ_DEFAULT_PASS
         ),
         heartbeat=0,
     )

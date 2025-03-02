@@ -20,7 +20,7 @@ services:
     build: ./app
     env_file:
       - .env
-    command: [ "python", "./src/ml_service/model.py" ]
+    command: [ "python", "./src/model.py" ]
     volumes:
       - ./app:/app
     restart: on-failure

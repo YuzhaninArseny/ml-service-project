@@ -8,6 +8,7 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -73,17 +74,18 @@ class Transaction(Base):
             "username": self.username,
             "amount": self.amount,
             "transaction_type": self.transaction_type,
-            "date": self.date.isoformat()
+            "date": self.date.isoformat(),
         }
+
 
 class Prediction(Base):
     __tablename__ = "predictions"
 
     id = Column(Integer, primary_key=True)
+    task_id = Column(String, nullable=False)
     username = Column(String, ForeignKey("users.username"), nullable=False)
-    prediction_result = Column(
-        String, nullable=False
-    )  # Буду анекдоты пользователю генерировать, поэтому string
+    prediction_result = Column(String, nullable=False)
+    amount = Column(Float, nullable=False)
     date = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="predictions")
@@ -92,6 +94,9 @@ class Prediction(Base):
         return {
             "id": self.id,
             "username": self.username,
+            "task_id": self.task_id,
             "prediction_result": self.prediction_result,
-            "date": self.date.isoformat()
+            "amount": self.amount,
+            "date": self.date.isoformat(),
         }
+
