@@ -110,7 +110,10 @@ class UserManager(Database):
             user = session.query(User).filter_by(username=username).first()
             if user:
                 users_prediction = Prediction(
-                    task_id=task_id, username=username, prediction_result=prediction, amount=amount
+                    task_id=task_id,
+                    username=username,
+                    prediction_result=prediction,
+                    amount=amount,
                 )
                 session.add(users_prediction)
 
@@ -140,48 +143,14 @@ class UserManager(Database):
     @classmethod
     def get_prediction_by_id(cls, db_url: str, prediction_id: str, username: str):
         user_manager = cls(db_url)
-        with (user_manager.session_scope() as session):
-            prediction = session.query(Prediction).filter((Prediction.task_id==prediction_id) & (Prediction.username==username)).first()
+        with user_manager.session_scope() as session:
+            prediction = (
+                session.query(Prediction)
+                .filter(
+                    (Prediction.task_id == prediction_id)
+                    & (Prediction.username == username)
+                )
+                .first()
+            )
             if prediction:
                 return prediction.prediction_result
-
-if __name__ == "__main__":
-    db_url = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:5432/{POSTGRES_DB}"
-    print(db_url)
-    # UserManager.register(db_url, "demo_user", "a")
-    UserManager.try_register(db_url, "demo_admin", "adminpassword", is_admin=True)
-    #
-    # is_authorized = UserManager.authorization(db_url, "demo_user", "a")
-    # print("Authorization successful:", is_authorized)
-    #
-    balance = UserManager.get_balance(db_url, "demo_admin")
-    print("Balance:", balance)
-
-    # UserManager.change_balance(db_url, "demo_admin", 50.0, datetime.utcnow())
-    # new_balance = UserManager.get_balance(db_url, "demo_admin")
-    # print("New Balance:", new_balance)
-    # UserManager.change_balance(db_url, "demo_user", -25.0, datetime.utcnow)
-    # new_balance = UserManager.get_balance(db_url, "demo_user")
-    # print("New Balance:", new_balance)
-
-    # transactions = UserManager.get_user_transactions(db_url, "demo_admin")
-    # print("Transactions:", transactions)
-    #
-    # UserManager.add_prediction(db_url, "qwsdqfcQE-33434-34254", "demo_admin", "hahahahahahhahhaahha", -80)
-
-    # UserManager.register(db_url, "testman", "password")
-    # date = datetime.utcnow()
-    # UserManager.change_balance(db_url, "testman", 50, date)
-    # UserManager.add_prediction(db_url, "testman", "bla-bla-bla", date)
-    # UserManager.change_balance(db_url, "testman", -50, date)
-    # UserManager.add_prediction(db_url, "testman", "fwegvfawgvawrv", date)
-    # UserManager.change_balance(db_url, "testman", 50, date)
-    # UserManager.add_prediction(db_url, "testman", "qwertyuiop[", date)
-    #
-    #
-    # predictions = UserManager.get_user_predictions(db_url, "demo_admin")
-    # print("Predictions:", predictions)
-    # prediction_by_id = UserManager.get_prediction_by_id(db_url, "qwsdqfcQE-33434-34254", "demo_admin")
-
-    # delete DB
-    # db = Database(db_url)

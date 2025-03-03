@@ -99,4 +99,3 @@ class Prediction(Base):
             "amount": self.amount,
             "date": self.date.isoformat(),
         }
-

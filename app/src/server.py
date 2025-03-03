@@ -53,7 +53,9 @@ def get_username_from_token(token: str):
 
 @app.post("/register")
 def register_user(user: UserData):
-    message = UserManager.try_register(get_url(), user.username, user.password, user.is_admin)
+    message = UserManager.try_register(
+        get_url(), user.username, user.password, user.is_admin
+    )
     if "successfully" in message:
         return {"message": "User successfully registered!"}
     elif "already registered" in message:
@@ -112,6 +114,7 @@ def get_all_users(token: str = Depends(authenticate)):
 
     return UserManager.get_all_users(get_url())
 
+
 @app.get("/all_transactions")
 def get_user_transactions(token: str = Depends(authenticate)):
     username = get_username_from_token(token)
@@ -119,15 +122,11 @@ def get_user_transactions(token: str = Depends(authenticate)):
     return transactions
 
 
-
 @app.post("/anecdote")
 def get_anecdote(prompt_data: AnecdoteRequest, token: str = Depends(authenticate)):
     username = get_username_from_token(token)
 
-    if (
-        UserManager.get_balance(get_url(), username)
-        < PROMPT_PRICE
-    ):
+    if UserManager.get_balance(get_url(), username) < PROMPT_PRICE:
         raise HTTPException(status_code=400, detail="Insufficient funds")
 
     with pika.BlockingConnection(get_connection_params()) as connection:

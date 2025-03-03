@@ -51,7 +51,9 @@ class Model:
             print("Запрос обработан")
 
             answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-            UserManager.add_prediction(get_url(), data["id"], data["username"], answer, data["amount"])
+            UserManager.add_prediction(
+                get_url(), data["id"], data["username"], answer, data["amount"]
+            )
             channel.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
             print(e)

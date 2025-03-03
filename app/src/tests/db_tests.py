@@ -11,6 +11,7 @@ def test_try_register(init_db, db_url):
     result = UserManager.try_register(db_url, "test_user", "password")
     assert result == "user already registered"
 
+
 def test_authorization(init_db, db_url):
     UserManager.try_register(db_url, "test_user", "password")
 
@@ -22,9 +23,12 @@ def test_authorization(init_db, db_url):
     assert user_id is None
     assert is_admin is None
 
-    user_id, is_admin = UserManager.authorization(db_url, "non_existent_user", "password")
+    user_id, is_admin = UserManager.authorization(
+        db_url, "non_existent_user", "password"
+    )
     assert user_id is None
     assert is_admin is None
+
 
 def test_get_all_users(init_db, db_url):
     UserManager.try_register(db_url, "user1", "password1")
@@ -32,6 +36,7 @@ def test_get_all_users(init_db, db_url):
 
     users = UserManager.get_all_users(db_url)
     assert len(json.loads(users)) == 2
+
 
 def test_get_balance(init_db, db_url):
     UserManager.try_register(db_url, "test_user", "password")
@@ -41,6 +46,7 @@ def test_get_balance(init_db, db_url):
 
     balance = UserManager.get_balance(db_url, "non_existent_user")
     assert balance is None
+
 
 def test_change_balance(init_db, db_url):
     UserManager.try_register(db_url, "test_user", "password")
@@ -56,12 +62,14 @@ def test_change_balance(init_db, db_url):
     with pytest.raises(ValueError, match="Cannot change balance"):
         UserManager.change_balance(db_url, "test_user", -100)
 
+
 def test_add_prediction(init_db, db_url):
     UserManager.try_register(db_url, "test_user", "password")
     UserManager.add_prediction(db_url, "task1", "test_user", "prediction1", -10)
 
     predictions = UserManager.get_user_predictions(db_url, "test_user")
     assert len(json.loads(predictions)) == 1
+
 
 def test_get_user_transactions(init_db, db_url):
     UserManager.try_register(db_url, "test_user", "password")
@@ -71,6 +79,7 @@ def test_get_user_transactions(init_db, db_url):
     transactions = UserManager.get_user_transactions(db_url, "test_user")
     assert len(json.loads(transactions)) == 2
 
+
 def test_get_user_predictions(init_db, db_url):
     UserManager.try_register(db_url, "test_user", "password")
     UserManager.add_prediction(db_url, "task1", "test_user", "prediction1", -10)
@@ -79,6 +88,7 @@ def test_get_user_predictions(init_db, db_url):
     predictions = UserManager.get_user_predictions(db_url, "test_user")
     assert len(json.loads(predictions)) == 2
 
+
 def test_get_prediction_by_id(init_db, db_url):
     UserManager.try_register(db_url, "test_user", "password")
     UserManager.add_prediction(db_url, "task1", "test_user", "prediction1", -10)
@@ -86,5 +96,7 @@ def test_get_prediction_by_id(init_db, db_url):
     prediction = UserManager.get_prediction_by_id(db_url, "task1", "test_user")
     assert prediction == "prediction1"
 
-    prediction = UserManager.get_prediction_by_id(db_url, "non_existent_task", "test_user")
+    prediction = UserManager.get_prediction_by_id(
+        db_url, "non_existent_task", "test_user"
+    )
     assert prediction is None

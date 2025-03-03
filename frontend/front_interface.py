@@ -6,7 +6,6 @@ from config import SECRET_KEY, ALGORITHM, BASE_URL
 import time
 
 
-# Функция для регистрации пользователя
 def register_user(username, password, is_admin):
     url = f"{BASE_URL}/register"
     response = requests.post(
@@ -15,7 +14,6 @@ def register_user(username, password, is_admin):
     return response.json()
 
 
-# Функция для входа пользователя
 def login_user(username, password):
     url = f"{BASE_URL}/login"
     response = requests.post(url, json={"username": username, "password": password})
@@ -26,6 +24,7 @@ def get_all_users():
     url = f"{BASE_URL}/all_users"
     response = requests.get(url)
     return response.json()
+
 
 def get_transaction_history(token: str):
     url = f"{BASE_URL}/all_transactions"
@@ -47,9 +46,34 @@ if "show_register" not in st.session_state:
     st.session_state.show_register = True
 if "show_login" not in st.session_state:
     st.session_state.show_login = True
+if "show_main" not in st.session_state:
+    st.session_state.show_main = True
 
-# Кнопки для регистрации и входа
-if st.session_state.show_register and st.session_state.show_login:
+if st.session_state.show_main:
+    st.title("Welcome to visit the Joker!")
+    st.write(
+        """
+        Here you can very easily get an excellent joke that will lift your mood 
+        (well, or just some nonsense that is no less funny)!
+    """
+    )
+    st.write(
+        """
+        Let's go have fun!
+    """
+    )
+    if st.button("Get Started"):
+        st.session_state.show_main = False
+        st.session_state.show_register = True
+        st.session_state.show_login = True
+        st.rerun()
+
+
+if (
+    not st.session_state.show_main
+    and st.session_state.show_register
+    and st.session_state.show_login
+):
     tab1, tab2 = st.tabs(["Register", "Login"])
 
     with tab1:
@@ -88,7 +112,7 @@ if st.session_state.show_register and st.session_state.show_login:
                     else:
                         st.error("Login failed!")
 
-# Проверка состояния авторизации
+
 if (
     st.session_state.token
     and not st.session_state.show_login
@@ -105,7 +129,7 @@ if (
         response = requests.get(url, cookies={"access_token": st.session_state.token})
         st.write(response.json())
 
-    # Вкладка для депозита
+
     with st.container(border=True):
         amount = st.number_input("Amount", key="deposit_amount")
         if st.button("Top up balance", key="deposit_button"):
@@ -128,7 +152,7 @@ if (
         else:
             st.info("No transactions available!")
 
-    # Вкладка для получения предсказаний
+
     if st.button("Get Predictions", key="get_predictions_button"):
         url = f"{BASE_URL}/predictions"
         response = requests.get(url, cookies={"access_token": st.session_state.token})
@@ -138,7 +162,7 @@ if (
         else:
             st.info("No predictions available!")
 
-    # Вкладка для получения анекдота
+
     with st.container(border=True):
         prompt = st.text_input("Запрос", key="anecdote_prompt")
         if st.button("Get Anecdote", key="get_anecdote_button"):
@@ -153,22 +177,28 @@ if (
                 content = json.loads(content)
                 st.error(content["detail"])
             else:
-                # st.write(response.json()["prediction"])
                 task_id = response.json().get("task_id")
                 if task_id:
                     with st.spinner("Processing the prompt..."):
                         while True:
                             url = f"{BASE_URL}/anecdote/{task_id}"
-                            response = requests.get(url, cookies={"access_token": st.session_state.token})
+                            response = requests.get(
+                                url, cookies={"access_token": st.session_state.token}
+                            )
                             answer = response.json()
                             if answer is not None and answer.get("prediction", False):
-                                st.success("Result received!")
                                 st.write(answer["prediction"])
+                                st.success("Result received!")
                                 break
-                            elif "detail" in answer and answer["detail"] == "Task result not found":
+                            elif (
+                                "detail" in answer
+                                and answer["detail"] == "Task result not found"
+                            ):
                                 time.sleep(5)
                             else:
-                                st.error("An error occurred while retrieving the result.")
+                                st.error(
+                                    "An error occurred while retrieving the result."
+                                )
                                 break
                 else:
                     st.error("Failed to send request!")
