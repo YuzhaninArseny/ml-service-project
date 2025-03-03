@@ -15,7 +15,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True)
     password = Column(String)
-    balance = Column(Integer)
+    balance = Column(Float)
     is_admin = Column(Boolean)
 
     transactions = relationship("Transaction", back_populates="user")

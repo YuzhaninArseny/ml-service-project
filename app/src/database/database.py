@@ -42,17 +42,17 @@ class Database:
 
 class UserManager(Database):
     @classmethod
-    def register(
+    def try_register(
         cls, db_url, username: str, password: str, is_admin: bool = False
-    ) -> bool:
+    ) -> str:
         user_manager = cls(db_url)
         with user_manager.session_scope() as session:
             if session.query(User).filter_by(username=username).first():
-                return False
+                return "user already registered"
             new_user = User(username=username, password=password, is_admin=is_admin)
             session.add(new_user)
 
-        return True
+        return "user successfully registered"
 
     @classmethod
     def authorization(cls, db_url: str, username: str, password_for_verification: str):
@@ -138,7 +138,7 @@ class UserManager(Database):
         return predictions
 
     @classmethod
-    def get_prediction_by_id(cls, db_url: str, prediction_id: int, username: str):
+    def get_prediction_by_id(cls, db_url: str, prediction_id: str, username: str):
         user_manager = cls(db_url)
         with (user_manager.session_scope() as session):
             prediction = session.query(Prediction).filter((Prediction.task_id==prediction_id) & (Prediction.username==username)).first()
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     db_url = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:5432/{POSTGRES_DB}"
     print(db_url)
     # UserManager.register(db_url, "demo_user", "a")
-    UserManager.register(db_url, "demo_admin", "adminpassword", is_admin=True)
+    UserManager.try_register(db_url, "demo_admin", "adminpassword", is_admin=True)
     #
     # is_authorized = UserManager.authorization(db_url, "demo_user", "a")
     # print("Authorization successful:", is_authorized)
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     # transactions = UserManager.get_user_transactions(db_url, "demo_admin")
     # print("Transactions:", transactions)
     #
-    UserManager.add_prediction(db_url, "qwsdqfcQE-33434-34254", "demo_admin", "hahahahahahhahhaahha", -80)
+    # UserManager.add_prediction(db_url, "qwsdqfcQE-33434-34254", "demo_admin", "hahahahahahhahhaahha", -80)
 
     # UserManager.register(db_url, "testman", "password")
     # date = datetime.utcnow()
@@ -179,9 +179,9 @@ if __name__ == "__main__":
     # UserManager.add_prediction(db_url, "testman", "qwertyuiop[", date)
     #
     #
-    predictions = UserManager.get_user_predictions(db_url, "demo_admin")
-    print("Predictions:", predictions)
-    prediction_by_id = UserManager.get_prediction_by_id(db_url, "qwsdqfcQE-33434-34254", "demo_admin")
+    # predictions = UserManager.get_user_predictions(db_url, "demo_admin")
+    # print("Predictions:", predictions)
+    # prediction_by_id = UserManager.get_prediction_by_id(db_url, "qwsdqfcQE-33434-34254", "demo_admin")
 
     # delete DB
     # db = Database(db_url)

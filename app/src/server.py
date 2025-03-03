@@ -8,10 +8,9 @@ from auth import create_access_token
 from database.database import UserManager
 from shemas.shemas import UserData, Transaction, PredictionCreate, AnecdoteRequest
 
-from config import get_url, SECRET_KEY, ALGORITHM, PROMPT_PRICE
+from config import get_url, SECRET_KEY, ALGORITHM, PROMPT_PRICE, get_connection_params
 from jose import jwt, JWTError
 import pika
-from ml_service.config import get_connection_params
 
 app = FastAPI()
 
@@ -54,9 +53,12 @@ def get_username_from_token(token: str):
 
 @app.post("/register")
 def register_user(user: UserData):
-    if UserManager.register(get_url(), user.username, user.password, user.is_admin):
+    message = UserManager.try_register(get_url(), user.username, user.password, user.is_admin)
+    if "successfully" in message:
         return {"message": "User successfully registered!"}
-    raise HTTPException(status_code=400, detail="Username already registered")
+    elif "already registered" in message:
+        return {"message": "User already registered!"}
+    raise HTTPException(status_code=500)
 
 
 @app.post("/login")

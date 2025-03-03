@@ -65,6 +65,16 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: always
 
+  database-test:
+    container_name: "postgres-test"
+    image: postgres:13
+    environment:
+      POSTGRES_DB: "test-db"
+      POSTGRES_USER: "test_user"
+      POSTGRES_PASSWORD: "password"
+    ports:
+      - "5433:5432"
+
 volumes:
   rabbitmq_data:
   postgres_data:
