@@ -24,7 +24,6 @@ class Database:
         self._Session = sessionmaker(
             autocommit=False, autoflush=False, bind=self._engine
         )
-        # Base.metadata.drop_all(self._engine)
         Base.metadata.create_all(self._engine)
 
     @contextmanager
@@ -119,7 +118,6 @@ class UserManager(Database):
 
     @classmethod
     def get_user_transactions(cls, db_url: str, username: str):
-        """Получает все транзакции для указанного пользователя."""
         user_manager = cls(db_url)
         with user_manager.session_scope() as session:
             transactions = session.query(Transaction).filter_by(username=username).all()

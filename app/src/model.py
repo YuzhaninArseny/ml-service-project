@@ -41,14 +41,10 @@ class Model:
                     Prompt: {prompt}
                 """
 
-            print("Запрос пришел")
-
             input_ids = self.tokenizer(adjusted_prompt, return_tensors="pt").input_ids
             outputs = self.model.generate(
                 input_ids, max_length=200, do_sample=True, top_k=5, top_p=0.9
             )
-
-            print("Запрос обработан")
 
             answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
             UserManager.add_prediction(
