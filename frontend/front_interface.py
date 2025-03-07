@@ -89,7 +89,6 @@ if (
                     answer = register_user(username, password, is_admin_flag)
                     if answer.get("message", False):
                         st.success(answer["message"])
-                        st.session_state.show_register = False
                     else:
                         st.error(answer["detail"])
 
